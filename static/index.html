@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NetPath Network AI - Student Learning Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+            height: 95vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 1em;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+        
+        .badge {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        .sidebar {
+            width: 280px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-right: 1px solid #e9ecef;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+        
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #f8f9fa;
+        }
+        
+        .messages-area {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            background: white;
+        }
+        
+        .message {
+            margin: 20px 0;
+            padding: 18px;
+            border-radius: 15px;
+            max-width: 85%;
+            animation: fadeIn 0.3s ease-in;
+            line-height: 1.5;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            margin-left: auto;
+            text-align: right;
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+        }
+        
+        .ai-message {
+            background: white;
+            border-left: 5px solid #2ecc71;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .input-container {
+            padding: 25px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        .input-container input {
+            flex: 1;
+            padding: 18px;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .input-container input:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        
+        .input-container button {
+            padding: 18px 30px;
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+        
+        .input-container button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(46, 204, 113, 0.3);
+        }
+        
+        .input-container button:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .topic-section {
+            margin-bottom: 25px;
+        }
+        
+        .topic-section h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+        
+        .topic-item {
+            background: white;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-size: 0.95em;
+        }
+        
+        .topic-item:hover {
+            background: #3498db;
+            color: white;
+            border-left-color: #2c3e50;
+            transform: translateX(5px);
+        }
+        
+        .typing-indicator {
+            display: inline-block;
+            padding: 12px 18px;
+            background: #ecf0f1;
+            border-radius: 20px;
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #7f8c8d;
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+        
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+        
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+        
+        .message-time {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+        
+        .welcome-message {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 15px;
+            margin: 20px 0;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .feature-card h4 {
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+                height: 90vh;
+            }
+            
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 200px;
+                border-right: none;
+                border-bottom: 1px solid #e9ecef;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .message {
+                max-width: 95%;
+            }
+            
+            .input-container {
+                padding: 15px;
+            }
+            
+            .input-container button {
+                padding: 15px 20px;
+            }
+        }
+
+        .message pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+            border-left: 3px solid #3498db;
+        }
+
+        .message code {
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 NetPath Network AI</h1>
+            <p>Advanced Network Engineering Learning Platform</p>
+            <p class="subtitle">Powered by DeepSeek AI • 24/7 Available for Students</p>
+            <div class="badge">🚀 Live AI Assistant</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="topic-section">
+                    <h3>📚 Networking Protocols</h3>
+                    <div class="topic-item" onclick="askQuestion('Explain TCP/IP model in detail')">TCP/IP Model</div>
+                    <div class="topic-item" onclick="askQuestion('What is OSPF protocol and how it works?')">OSPF Protocol</div>
+                    <div class="topic-item" onclick="askQuestion('Explain BGP routing protocol')">BGP Routing</div>
+                    <div class="topic-item" onclick="askQuestion('Difference between TCP and UDP')">TCP vs UDP</div>
+                    <div class="topic-item" onclick="askQuestion('DNS working mechanism')">DNS System</div>
+                </div>
+                
+                <div class="topic-section">
+                    <h3>🔧 Network Security</h3>
+                    <div class="topic-item" onclick="askQuestion('What is firewall and how it works?')">Firewall</div>
+                    <div class="topic-item" onclick="askQuestion('Explain VPN technology')">VPN Technology</div>
+                    <div class="topic-item" onclick="askQuestion('Network security best practices')">Security Practices</div>
+                    <div class="topic-item" onclick="askQuestion('What are ACLs in networking?')">Access Control Lists</div>
+                </div>
+                
+                <div class="topic-section">
+                    <h3>🌐 Routing & Switching</h3>
+                    <div class="topic-item" onclick="askQuestion('Explain subnetting with examples')">Subnetting</div>
+                    <div class="topic-item" onclick="askQuestion('What are VLANs and their benefits?')">VLANs</div>
+                    <div class="topic-item" onclick="askQuestion('STP protocol explanation')">Spanning Tree Protocol</div>
+                    <div class="topic-item" onclick="askQuestion('Routing table concepts')">Routing Tables</div>
+                </div>
+                
+                <div class="topic-section">
+                    <h3>🛠️ Troubleshooting</h3>
+                    <div class="topic-item" onclick="askQuestion('Network troubleshooting steps')">Troubleshooting Steps</div>
+                    <div class="topic-item" onclick="askQuestion('Ping and traceroute commands')">Ping & Traceroute</div>
+                    <div class="topic-item" onclick="askQuestion('Common network issues and solutions')">Common Issues</div>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div class="messages-area" id="messagesArea">
+                    <div class="welcome-message">
+                        <h2>🎓 Welcome to NetPath Network AI!</h2>
+                        <p>I'm your expert Network Engineering assistant. Ask me anything about:</p>
+                        <div class="feature-grid">
+                            <div class="feature-card">
+                                <h4>📡 Protocols</h4>
+                                <p>TCP/IP, OSPF, BGP</p>
