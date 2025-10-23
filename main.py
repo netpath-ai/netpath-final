@@ -29,6 +29,47 @@ class AnswerResponse(BaseModel):
 async def get_deepseek_answer(question: str) -> str:
     """DeepSeek API se answer get karein"""
     try:
+        print(f"🔧 DEBUG: Calling DeepSeek API...")  # Debug line
+        
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
+        }
+        
+        # Network Engineering focused prompt
+        system_prompt = """You are an expert Network Engineering AI assistant. 
+        Provide detailed, technical answers about networking topics.
+        Answer in Hindi or English based on the user's language."""
+        
+        payload = {
+            "model": "deepseek-chat",
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": question}
+            ],
+            "max_tokens": 800,
+            "temperature": 0.7
+        }
+        
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            print(f"🔧 DEBUG: Sending request...")  # Debug
+            response = await client.post(DEEPSEEK_API_URL, headers=headers, json=payload)
+            print(f"🔧 DEBUG: Response status: {response.status_code}")  # Debug
+            
+            if response.status_code == 200:
+                data = response.json()
+                print(f"🔧 DEBUG: Success! Got response")  # Debug
+                return data["choices"][0]["message"]["content"]
+            else:
+                error_msg = f"API Error {response.status_code}"
+                print(f"🔧 DEBUG: {error_msg}")  # Debug
+                return error_msg
+            
+    except Exception as e:
+        error_msg = f"Exception: {str(e)}"
+        print(f"🔧 DEBUG: {error_msg}")  # Debug
+        return error_msg    """DeepSeek API se answer get karein"""
+    try:
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
@@ -304,22 +345,26 @@ async def home():
 async def ask_question(request: QuestionRequest):
     """AI questions ka answer dein"""
     try:
+        print(f"🔧 DEBUG: User asked: {request.question}")  # Debug
+        
         # Pehle DeepSeek API try karein
         deepseek_answer = await get_deepseek_answer(request.question)
+        print(f"🔧 DEBUG: DeepSeek response: {deepseek_answer}")  # Debug
         
         # Agar API se accha answer mila, toh woh return karein
         if deepseek_answer and "Error" not in deepseek_answer and "API Error" not in deepseek_answer:
+            print(f"🔧 DEBUG: Returning DeepSeek answer")  # Debug
             return AnswerResponse(answer=deepseek_answer, success=True)
         else:
             # Fallback to local knowledge
+            print(f"🔧 DEBUG: Using local fallback")  # Debug
             local_answer = get_local_answer(request.question)
             return AnswerResponse(answer=local_answer, success=True)
             
     except Exception as e:
-        # Exception case mein local answer
+        print(f"🔧 DEBUG: Exception in ask_question: {str(e)}")  # Debug
         local_answer = get_local_answer(request.question)
         return AnswerResponse(answer=local_answer, success=True)
-
 @app.get("/health")
 async def health_check():
     return {
