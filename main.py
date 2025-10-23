@@ -2,9 +2,9 @@ import os
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
-import httpx
 import uvicorn
-from typing import Optional
+from typing import Dict, List
+import random
 
 # NetPath Network AI Configuration
 COMPANY_NAME = "NetPath Network AI"
@@ -15,10 +15,6 @@ app = FastAPI(
     version="2.0.0"
 )
 
-# DeepSeek API Configuration - APNA ACTUAL API KEY
-DEEPSEEK_API_KEY = "sk-ebf9122c1e304ff68184d1acab6ae194"
-DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
-
 class QuestionRequest(BaseModel):
     question: str
 
@@ -26,117 +22,279 @@ class AnswerResponse(BaseModel):
     answer: str
     success: bool
 
-async def get_deepseek_answer(question: str) -> str:
-    """DeepSeek API se answer get karein"""
-    try:
-        print(f"🔧 DEBUG: Calling DeepSeek API...")  # Debug line
-        
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
-        }
-        
-        # Network Engineering focused prompt
-        system_prompt = """You are an expert Network Engineering AI assistant. 
-        Provide detailed, technical answers about networking topics.
-        Answer in Hindi or English based on the user's language."""
-        
-        payload = {
-            "model": "deepseek-chat",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
-            ],
-            "max_tokens": 800,
-            "temperature": 0.7
-        }
-        
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            print(f"🔧 DEBUG: Sending request...")  # Debug
-            response = await client.post(DEEPSEEK_API_URL, headers=headers, json=payload)
-            print(f"🔧 DEBUG: Response status: {response.status_code}")  # Debug
-            
-            if response.status_code == 200:
-                data = response.json()
-                print(f"🔧 DEBUG: Success! Got response")  # Debug
-                return data["choices"][0]["message"]["content"]
-            else:
-                error_msg = f"API Error {response.status_code}"
-                print(f"🔧 DEBUG: {error_msg}")  # Debug
-                return error_msg
-            
-    except Exception as e:
-        error_msg = f"Exception: {str(e)}"
-        print(f"🔧 DEBUG: {error_msg}")  # Debug
-        return error_msg    """DeepSeek API se answer get karein"""
-    try:
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {DEEPSEEK_API_KEY}"
-        }
-        
-        # Network Engineering focused prompt
-        system_prompt = """You are an expert Network Engineering AI assistant. 
-        Provide detailed, technical answers about networking topics like OSPF, BGP, TCP/IP, 
-        subnetting, VLANs, network security, and troubleshooting.
-        Answer in Hindi or English based on the user's language.
-        Be helpful and educational for students."""
-        
-        payload = {
-            "model": "deepseek-chat",
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": question}
-            ],
-            "max_tokens": 1000,
-            "temperature": 0.7
-        }
-        
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(DEEPSEEK_API_URL, headers=headers, json=payload)
-            
-            if response.status_code == 200:
-                data = response.json()
-                return data["choices"][0]["message"]["content"]
-            else:
-                return f"API Error {response.status_code}: Please try again later."
-            
-    except httpx.TimeoutException:
-        return "Request timeout. Please try again."
-    except Exception as e:
-        return f"Technical issue. Please try again."
-
-# Local knowledge base for fallback
+# COMPREHENSIVE NETWORKING KNOWLEDGE BASE
 NETWORK_KNOWLEDGE = {
-    "namaste": "Namaste! Main NetPath Network AI hoon. Aap OSPF, BGP, subnetting, VLANs, network security - koi bhi networking question puchh sakte hain!",
-    "hello": "Hello! I'm NetPath Network AI. How can I help you |Mai AI boot hu jo Kewal Network Enginer Master Ke liye Banaya gaya hu Mai aapse mafi mangta hu ki mai Abhi Apke Sabhi Swalo ka jabab nahi de paunga mai Abhi Sabhi Chije Sikh raha hu"
-    "help": "Main aapki networking, routing protocols, switching, security, aur troubleshooting mein madad kar sakta hoon!",
-    "ospf": "OSPF (Open Shortest Path First) ek link-state routing protocol hai jo areas use karta hai scalability ke liye.",
-    "bgp": "BGP (Border Gateway Protocol) internet ka routing protocol hai, path vector use karta hai.",
-    "subnetting": "Subnetting large networks ko smaller parts mein divide karta hai. Example: 192.168.1.0/24 = 256 IPs.",
+    # Basic Networking Concepts
+    "what is network": "A network is a collection of computers and devices connected together to share resources and communicate. Types include LAN (Local Area Network), WAN (Wide Area Network), MAN (Metropolitan Area Network), and WLAN (Wireless LAN).",
+    
+    "network": "Computer network devices ko connect karta hai resource sharing ke liye. Main components: Routers, Switches, Firewalls, Cables, Wireless Access Points. Network topology: Star, Bus, Ring, Mesh.",
+    
+    "types of network": """
+🌐 Network Types:
+• LAN (Local Area Network) - Small geographical area
+• WAN (Wide Area Network) - Large geographical area  
+• MAN (Metropolitan Area Network) - City-wide
+• WLAN (Wireless LAN) - Wireless connectivity
+• PAN (Personal Area Network) - Personal devices
+• VPN (Virtual Private Network) - Secure remote access
+""",
+
+    # Network Models
+    "osi model": """
+📚 OSI Model - 7 Layers:
+1. Physical - Cables, signals, hardware
+2. Data Link - MAC addresses, switches
+3. Network - IP addresses, routers
+4. Transport - TCP/UDP, reliability
+5. Session - Connections, sessions
+6. Presentation - Encryption, compression
+7. Application - HTTP, FTP, SMTP
+""",
+
+    "tcp/ip model": """
+📡 TCP/IP Model - 4 Layers:
+1. Network Interface - Ethernet, WiFi
+2. Internet - IP, ICMP, routing
+3. Transport - TCP (reliable), UDP (fast)
+4. Application - HTTP, DNS, SSH, FTP
+""",
+
+    "difference between osi and tcp/ip": """
+🔄 OSI vs TCP/IP:
+• OSI - 7 layers, theoretical model
+• TCP/IP - 4 layers, practical implementation
+• OSI - Session & Presentation layers separate
+• TCP/IP - Session & Presentation included in Application layer
+""",
+
+    # Network Devices
+    "router": "🔄 Router - Layer 3 device, different networks ko connect karta hai. Routing tables use karta hai. Protocols: OSPF, BGP, EIGRP. Functions: Packet forwarding, path selection.",
+
+    "switch": "🔀 Switch - Layer 2 device, same network ke devices ko connect karta hai. MAC address table maintain karta hai. VLANs create kar sakta hai.",
+
+    "firewall": "🛡️ Firewall - Network security device, incoming/outgoing traffic control karta hai. Types: Packet-filtering, Stateful, Next-gen. ACL rules enforce karta hai.",
+
+    # Protocols
+    "tcp": "📨 TCP (Transmission Control Protocol) - Connection-oriented, reliable, sequencing, flow control. Used for: HTTP, FTP, SSH. Three-way handshake use karta hai.",
+
+    "udp": "⚡ UDP (User Datagram Protocol) - Connectionless, faster, no guarantees. Used for: DNS, VoIP, streaming. No sequencing or flow control.",
+
+    "tcp vs udp": """
+🆚 TCP vs UDP:
+TCP:
+• Connection-oriented
+• Reliable delivery
+• Sequencing & flow control
+• Slower but secure
+• Example: HTTP, FTP
+
+UDP:
+• Connectionless  
+• Faster but unreliable
+• No sequencing
+• Lower overhead
+• Example: DNS, VoIP
+""",
+
+    "http": "🌐 HTTP (Hypertext Transfer Protocol) - Web browsing ke liye, port 80 use karta hai, unencrypted.",
+
+    "https": "🔒 HTTPS (HTTP Secure) - Encrypted version of HTTP, port 443 use karta hai, SSL/TLS encryption.",
+
+    "dns": "📡 DNS (Domain Name System) - Domain names ko IP addresses mein convert karta hai. Hierarchy: Root → TLD → Authoritative servers.",
+
+    "dhcp": "🔌 DHCP (Dynamic Host Configuration Protocol) - Automatic IP address assignment, lease time manage karta hai.",
+
+    # Routing Protocols
+    "ospf": """
+🔄 OSPF (Open Shortest Path First):
+• Link-state routing protocol
+• Areas use karta hai scalability ke liye
+• Fast convergence
+• Dijkstra algorithm use karta hai
+• Metric: Cost (bandwidth based)
+""",
+
+    "bgp": """
+🌍 BGP (Border Gateway Protocol):
+• Internet routing protocol
+• Path vector protocol
+• AS (Autonomous System) numbers use karta hai
+• Policies based routing
+• TCP port 179 use karta hai
+""",
+
+    "eigrp": "🔷 EIGRP (Enhanced Interior Gateway Routing Protocol) - Cisco proprietary, hybrid protocol, DUAL algorithm use karta hai.",
+
+    "rip": "🔄 RIP (Routing Information Protocol) - Distance vector, hop count metric, maximum 15 hops.",
+
+    # IP Addressing & Subnetting
+    "ip address": "📍 IP Address - Device ka network identity. IPv4: 32-bit (192.168.1.1), IPv6: 128-bit. Public aur Private IP addresses.",
+
+    "subnetting": """
+🧮 Subnetting - Large network ko smaller parts mein divide karna:
+• 192.168.1.0/24 = 256 total, 254 usable
+• 192.168.1.0/25 = 128 total, 126 usable
+• 192.168.1.0/26 = 64 total, 62 usable
+• Subnet mask: 255.255.255.0 = /24
+""",
+
+    "ipv4 vs ipv6": """
+🆚 IPv4 vs IPv6:
+IPv4:
+• 32-bit address
+• 4.3 billion addresses
+• Dotted decimal notation
+• NAT required
+
+IPv6:
+• 128-bit address
+• 340 undecillion addresses  
+• Hexadecimal notation
+• Built-in security
+""",
+
+    # VLAN & Switching
+    "vlan": """
+🔷 VLAN (Virtual LAN):
+• Logical network segmentation
+• Broadcast domains control karta hai
+• Security improve karta hai
+• Trunk ports required between switches
+• Types: Data VLAN, Voice VLAN, Native VLAN
+""",
+
+    "stp": "🔄 STP (Spanning Tree Protocol) - Switching loops prevent karta hai. Root bridge election. Port states: Blocking, Listening, Learning, Forwarding.",
+
+    # Network Security
+    "vpn": "🔐 VPN (Virtual Private Network) - Secure encrypted connection public internet par. Types: Site-to-Site, Remote Access. Protocols: IPsec, SSL VPN.",
+
+    "acl": "📋 ACL (Access Control List) - Traffic ko allow/deny karne ke rules. Types: Standard ACL (source based), Extended ACL (source/destination both).",
+
+    "network security": """
+🛡️ Network Security Best Practices:
+• Strong passwords use karein
+• Regular updates karein
+• Firewall configure karein
+• VPN use karein remote access ke liye
+• Network monitoring karein
+• Access controls implement karein
+""",
+
+    # Troubleshooting
+    "ping": "🔄 Ping - Network connectivity check karne ke liye. ICMP protocol use karta hai. Command: ping google.com",
+
+    "tracert": "🛣️ Tracert - Packet ka path trace karta hai source se destination tak. Command: tracert 8.8.8.8",
+
+    "ipconfig": "💻 IPConfig - Network configuration dikhata hai. Command: ipconfig /all (Windows), ifconfig (Linux)",
+
+    "network troubleshooting": """
+🔧 Network Troubleshooting Steps:
+1. Physical connections check karein
+2. IP configuration verify karein
+3. Ping se connectivity test karein
+4. DNS resolution check karein
+5. Router/switch configuration verify karein
+6. Firewall rules check karein
+""",
+
+    # Basic Greetings
+    "namaste": "Namaste! 🙏 Main NetPath Network AI hoon. Aap OSPF, BGP, subnetting, VLANs, network security - koi bhi networking question puchh sakte hain!",
+    
+    "hello": "Hello! 👋 I'm NetPath Network AI. How can I help you with networking topics today?",
+    
+    "hi": "Hi there! 😊 I'm your Network Engineering assistant. Ask me anything about networking!",
+    
+    "help": """
+🆘 How I can help you:
+
+📚 Networking Concepts:
+• OSI Model, TCP/IP Model
+• Network devices, protocols
+• IP addressing, subnetting
+
+🔄 Routing & Switching:
+• OSPF, BGP, EIGRP protocols
+• VLANs, STP, switching concepts
+
+🛡️ Security:
+• Firewalls, VPNs, ACLs
+• Network security best practices
+
+🔧 Troubleshooting:
+• Ping, tracert, ipconfig
+• Network issue resolution
+
+Koi bhi topic puchiye! 🎓
+""",
+
+    "thank you": "You're welcome! 😊 Agar koi aur sawal ho toh zaroor puchiye!",
+    
+    "bye": "Alvida! 👋 Aapse baat karke accha laga. Phir milenge!",
 }
 
-def get_local_answer(question: str) -> str:
-    """Local knowledge base se answer dein"""
-    question_lower = question.lower()
+def find_best_answer(question: str) -> str:
+    """Question ka best answer dhoondhta hai"""
+    question_lower = question.lower().strip()
     
-    # Direct matches
+    # Direct match
     if question_lower in NETWORK_KNOWLEDGE:
         return NETWORK_KNOWLEDGE[question_lower]
     
-    # Keyword matches
-    if "ospf" in question_lower:
-        return NETWORK_KNOWLEDGE["ospf"]
-    elif "bgp" in question_lower:
-        return NETWORK_KNOWLEDGE["bgp"] 
-    elif "subnet" in question_lower:
-        return NETWORK_KNOWLEDGE["subnetting"]
-    elif any(word in question_lower for word in ["hello", "hi", "namaste"]):
-        return NETWORK_KNOWLEDGE["namaste"]
+    # Smart keyword matching
+    keyword_mapping = {
+        "network": "what is network",
+        "types of network": "types of network",
+        "osi": "osi model",
+        "tcp": "tcp/ip model", 
+        "ip model": "tcp/ip model",
+        "router": "router",
+        "switch": "switch",
+        "firewall": "firewall",
+        "tcp vs udp": "tcp vs udp",
+        "udp": "tcp vs udp",
+        "http": "http",
+        "https": "https",
+        "dns": "dns",
+        "dhcp": "dhcp",
+        "ospf": "ospf",
+        "bgp": "bgp",
+        "eigrp": "eigrp",
+        "rip": "rip",
+        "ip address": "ip address",
+        "subnet": "subnetting",
+        "ipv4": "ipv4 vs ipv6",
+        "ipv6": "ipv4 vs ipv6",
+        "vlan": "vlan",
+        "stp": "stp",
+        "vpn": "vpn",
+        "acl": "acl",
+        "security": "network security",
+        "ping": "ping",
+        "tracert": "tracert",
+        "ipconfig": "ipconfig",
+        "troubleshoot": "network troubleshooting",
+        "problem": "network troubleshooting",
+        "issue": "network troubleshooting",
+        "thanks": "thank you",
+        "thank": "thank you",
+        "bye": "bye",
+        "goodbye": "bye",
+    }
     
-    return "I'm here to help with networking topics. Please ask about OSPF, BGP, subnetting, VLANs, or network security."
+    for keyword, answer_key in keyword_mapping.items():
+        if keyword in question_lower:
+            return NETWORK_KNOWLEDGE[answer_key]
+    
+    # If no match found
+    suggestions = [
+        "I can help you with networking topics! Try asking about:",
+        "OSI Model, TCP/IP protocols, routers, switches",
+        "Subnetting, VLANs, network security, troubleshooting",
+        "Routing protocols like OSPF, BGP, EIGRP"
+    ]
+    return f"{NETWORK_KNOWLEDGE['help']}"
 
-# Simple HTML Interface
+# HTML Interface (same as before)
 HTML_CONTENT = """
 <!DOCTYPE html>
 <html>
@@ -344,34 +502,16 @@ async def home():
 @app.post("/ask")
 async def ask_question(request: QuestionRequest):
     """AI questions ka answer dein"""
-    try:
-        print(f"🔧 DEBUG: User asked: {request.question}")  # Debug
-        
-        # Pehle DeepSeek API try karein
-        deepseek_answer = await get_deepseek_answer(request.question)
-        print(f"🔧 DEBUG: DeepSeek response: {deepseek_answer}")  # Debug
-        
-        # Agar API se accha answer mila, toh woh return karein
-        if deepseek_answer and "Error" not in deepseek_answer and "API Error" not in deepseek_answer:
-            print(f"🔧 DEBUG: Returning DeepSeek answer")  # Debug
-            return AnswerResponse(answer=deepseek_answer, success=True)
-        else:
-            # Fallback to local knowledge
-            print(f"🔧 DEBUG: Using local fallback")  # Debug
-            local_answer = get_local_answer(request.question)
-            return AnswerResponse(answer=local_answer, success=True)
-            
-    except Exception as e:
-        print(f"🔧 DEBUG: Exception in ask_question: {str(e)}")  # Debug
-        local_answer = get_local_answer(request.question)
-        return AnswerResponse(answer=local_answer, success=True)
+    answer = find_best_answer(request.question)
+    return AnswerResponse(answer=answer, success=True)
+
 @app.get("/health")
 async def health_check():
     return {
         "status": "healthy", 
         "service": "NetPath AI",
-        "api_configured": True,
-        "version": "2.0.0"
+        "version": "2.0.0",
+        "knowledge_topics": len(NETWORK_KNOWLEDGE)
     }
 
 # Render deployment
