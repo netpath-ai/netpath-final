@@ -109,7 +109,7 @@ async def get_deepseek_answer(question: str) -> str:
 # Local knowledge base for fallback
 NETWORK_KNOWLEDGE = {
     "namaste": "Namaste! Main NetPath Network AI hoon. Aap OSPF, BGP, subnetting, VLANs, network security - koi bhi networking question puchh sakte hain!",
-    "hello": "Hello! I'm NetPath Network AI. How can I help you with networking topics today?",
+    "hello": "Hello! I'm NetPath Network AI. How can I help you |Mai AI boot hu jo Kewal Network Enginer Master Ke liye Banaya gaya hu Mai aapse mafi mangta hu ki mai Abhi Apke Sabhi Swalo ka jabab nahi de paunga mai Abhi Sabhi Chije Sikh raha hu"
     "help": "Main aapki networking, routing protocols, switching, security, aur troubleshooting mein madad kar sakta hoon!",
     "ospf": "OSPF (Open Shortest Path First) ek link-state routing protocol hai jo areas use karta hai scalability ke liye.",
     "bgp": "BGP (Border Gateway Protocol) internet ka routing protocol hai, path vector use karta hai.",
