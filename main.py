@@ -198,7 +198,7 @@ IPv6:
 """,
 
     # Basic Greetings
-    "namaste": "Namaste! 🙏 Main NetPath Network AI hoon. Aap OSPF, BGP, subnetting, VLANs, network security - koi bhi networking question puchh sakte hain!",
+    "Abhishek": "Namaste! 🙏 Abhishek NetPath AI Owner!",
     
     "hello": "Hello! 👋 I'm NetPath Network AI. How can I help you with networking topics today?",
     
